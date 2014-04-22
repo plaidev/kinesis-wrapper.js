@@ -7,7 +7,7 @@ AWS.config.update({region: 'us-east-1'})
 
 
 # Kinesis
-class Kinesis
+class KinesisWrapper
 
   constructor: (options)->
 
@@ -41,6 +41,8 @@ class KinesisStream extends EventEmitter
 
         throw err if err
 
+        console.log 'get stream info...'
+
         async.map data.StreamDescription.Shards, (shard, cb)=>
           @kinesis.getShardIterator {
               ShardId: shard.ShardId
@@ -48,7 +50,9 @@ class KinesisStream extends EventEmitter
               StreamName: data.StreamDescription.StreamName
             }, (err, data)=>
               cb(err, data.ShardIterator)
-        ,(err, shardIterators)=>
+        , (err, shardIterators)=>
+
+          console.log 'get shards...'
 
           @shards = shardIterators.map (i)=>
             return new KinesisShard(@kinesis, i)
@@ -150,4 +154,4 @@ class KinesisShard extends EventEmitter
     @setup()
 
 
-module.exports = new Kinesis({})
+module.exports = new KinesisWrapper({})
