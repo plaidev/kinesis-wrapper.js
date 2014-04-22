@@ -6,7 +6,9 @@ kinesis = require('../src')
 describe 'kinesis', ()->
 
   it 'put and get', (done)->
+
     stream = kinesis.stream('test1')
+
     # get
     stream.getRecords (err, records)->
       records[0].val.key.should.be.equal('a')
@@ -18,7 +20,9 @@ describe 'kinesis', ()->
     , 4000
 
   it 'get from each shard', (done)->
+
     stream = kinesis.stream('test2')
+
     # shards
     stream.getShards (err, shards)->
       shards.map (shard)->

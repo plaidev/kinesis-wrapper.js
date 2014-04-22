@@ -22,7 +22,9 @@ class KinesisWrapper
 # apis: getShards, getRecords, putRecord
 class KinesisStream extends EventEmitter
 
-  constructor: (kinesis, stream_name, options)->
+  constructor: (kinesis, stream_name, options={})->
+
+    @options = options
 
     @kinesis = kinesis
 
@@ -46,7 +48,7 @@ class KinesisStream extends EventEmitter
         async.map data.StreamDescription.Shards, (shard, cb)=>
           @kinesis.getShardIterator {
               ShardId: shard.ShardId
-              ShardIteratorType: 'LATEST'
+              ShardIteratorType: @options.ShardIteratorType || 'LATEST'
               StreamName: data.StreamDescription.StreamName
             }, (err, data)=>
               cb(err, data.ShardIterator)
