@@ -84,6 +84,8 @@ class KinesisStream extends EventEmitter
         shard.setup()
         shard.on 'getRecords', cb
 
+      @emit 'startGetRecords', shards
+
     return listener(@shards) if @shards
 
     @on 'getShards', listener

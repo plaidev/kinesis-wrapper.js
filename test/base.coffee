@@ -15,9 +15,8 @@ describe 'kinesis', ()->
       done()
 
     # put
-    setTimeout ()->
+    stream.on 'startGetRecords', ()->
       stream.putRecord 'key', {key: 'a'}
-    , 4000
 
   it 'get from each shard', (done)->
 
@@ -30,9 +29,5 @@ describe 'kinesis', ()->
           if records.length > 0
             records[0].val.key.should.be.equal('b')
             done()
-
-    # put
-    setTimeout ()->
       stream.putRecord 'key', {key: 'b'}
-    , 4000
 
