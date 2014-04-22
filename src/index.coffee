@@ -4,7 +4,6 @@ AWS = require('aws-sdk')
 EventEmitter = require('events').EventEmitter
 AWS.config.update({region: 'us-east-1'})
 
-
 # Kinesis
 class Kinesis
   constructor: (options)->
@@ -27,12 +26,13 @@ class KinesisStream extends EventEmitter
     @setup()
 
   setup: ()->
+
     # call aws-sdk api
     @kinesis.describeStream {
         StreamName: @stream_name
       }, (err, data)=>
 
-        return console.log err.stack if err
+        throw err if err
 
         async.map data.StreamDescription.Shards, (shard, cb)=>
           @kinesis.getShardIterator {
@@ -44,20 +44,20 @@ class KinesisStream extends EventEmitter
         ,(err, shardIterators)=>
           @shards = shardIterators.map (i)=>
             return new KinesisShard(@kinesis, i)
-          @emit('getShards', @shards)
+          @emit('getShards', null, @shards)
 
   # get shards
   getShards: (cb)->
     if @shards
       return cb(null, @shards)
-    listener = (shards)=>
+    listener = (err, shards)=>
       cb(null, shards)
       @removeListener('getShards', listener)
     @on 'getShards', listener
 
   # get records from all shards
   getRecords: (cb)->
-    listener = (shards)=>
+    listener = (err, shards)=>
       shards.map (shard)=>
         shard.setup()
         shard.on 'getRecords', cb
@@ -99,7 +99,7 @@ class KinesisShard extends EventEmitter
       @kinesis.getRecords {
           ShardIterator: @iterator
         }, (err, data)=>
-          return console.log err.stack if err
+          throw err if err
           @iterator = data.NextShardIterator
           records = data.Records || []
           return setTimeout(_getRecords, 1000) if records.length == 0
