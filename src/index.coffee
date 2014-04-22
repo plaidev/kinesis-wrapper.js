@@ -1,20 +1,27 @@
-# imports
+
+# modules
 async = require('async')
 AWS = require('aws-sdk')
 EventEmitter = require('events').EventEmitter
 AWS.config.update({region: 'us-east-1'})
 
+
 # Kinesis
 class Kinesis
+
   constructor: (options)->
+
     @kinesis = new AWS.Kinesis()
+
   stream: (stream_name, options={})->
+
     return new KinesisStream(@kinesis, stream_name, options)
 
 
 # Stream Class
 # apis: getShards, getRecords, putRecord
 class KinesisStream extends EventEmitter
+
   constructor: (kinesis, stream_name, options)->
 
     @kinesis = kinesis
@@ -42,26 +49,37 @@ class KinesisStream extends EventEmitter
             }, (err, data)=>
               cb(err, data.ShardIterator)
         ,(err, shardIterators)=>
+
           @shards = shardIterators.map (i)=>
             return new KinesisShard(@kinesis, i)
+
           @emit('getShards', null, @shards)
 
   # get shards
   getShards: (cb)->
+
     if @shards
       return cb(null, @shards)
+
     listener = (err, shards)=>
+
       cb(null, shards)
+
       @removeListener('getShards', listener)
+
     @on 'getShards', listener
 
   # get records from all shards
   getRecords: (cb)->
+
     listener = (err, shards)=>
+
       shards.map (shard)=>
         shard.setup()
         shard.on 'getRecords', cb
+
     return listener(@shards) if @shards
+
     @on 'getShards', listener
 
   # put a record
@@ -82,6 +100,7 @@ class KinesisStream extends EventEmitter
 # apis: getRecords
 class KinesisShard extends EventEmitter
   constructor: (kinesis, iterator)->
+
     @kinesis = kinesis
 
     @iterator = iterator
@@ -92,22 +111,32 @@ class KinesisShard extends EventEmitter
   setup: ()->
 
     return if @initialized
+
     @initialized = true
 
     # call aws-sdk api
     _getRecords = ()=>
+
       @kinesis.getRecords {
           ShardIterator: @iterator
         }, (err, data)=>
+
           throw err if err
+
           @iterator = data.NextShardIterator
+
           records = data.Records || []
+
           return setTimeout(_getRecords, 1000) if records.length == 0
+
           records = records.map (record)->
-            val = new Buffer(record.Data, 'base64').toString()
-            val = JSON.parse(val)
+
+            val = JSON.parse(new Buffer(record.Data, 'base64').toString())
+
             return {key: record.PartitionKey, number: record.SequenceNumber, val: val}
+
           @emit 'getRecords', null, records
+
           _getRecords()
 
     # start
@@ -115,7 +144,9 @@ class KinesisShard extends EventEmitter
 
   # get records from a shard
   getRecords: (cb)->
+
     @on 'getRecords', cb
+
     @setup()
 
 

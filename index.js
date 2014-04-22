@@ -46,7 +46,7 @@
       }, (function(_this) {
         return function(err, data) {
           if (err) {
-            return console.log(err.stack);
+            throw err;
           }
           return async.map(data.StreamDescription.Shards, function(shard, cb) {
             return _this.kinesis.getShardIterator({
@@ -60,7 +60,7 @@
             _this.shards = shardIterators.map(function(i) {
               return new KinesisShard(_this.kinesis, i);
             });
-            return _this.emit('getShards', _this.shards);
+            return _this.emit('getShards', null, _this.shards);
           });
         };
       })(this));
@@ -72,7 +72,7 @@
         return cb(null, this.shards);
       }
       listener = (function(_this) {
-        return function(shards) {
+        return function(err, shards) {
           cb(null, shards);
           return _this.removeListener('getShards', listener);
         };
@@ -83,7 +83,7 @@
     KinesisStream.prototype.getRecords = function(cb) {
       var listener;
       listener = (function(_this) {
-        return function(shards) {
+        return function(err, shards) {
           return shards.map(function(shard) {
             shard.setup();
             return shard.on('getRecords', cb);
@@ -135,7 +135,7 @@
           }, function(err, data) {
             var records;
             if (err) {
-              return console.log(err.stack);
+              throw err;
             }
             _this.iterator = data.NextShardIterator;
             records = data.Records || [];
@@ -144,8 +144,7 @@
             }
             records = records.map(function(record) {
               var val;
-              val = new Buffer(record.Data, 'base64').toString();
-              val = JSON.parse(val);
+              val = JSON.parse(new Buffer(record.Data, 'base64').toString());
               return {
                 key: record.PartitionKey,
                 number: record.SequenceNumber,
