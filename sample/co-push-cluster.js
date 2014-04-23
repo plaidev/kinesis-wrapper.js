@@ -5,8 +5,12 @@ var cluster = require('cluster')
 var kinesis = require('..');
 
 
-var numWorkers = 32;
-var numIteration = 32;
+var numWorkers = 2;
+if(process.argv.length > 2)
+  numWorkers = process.argv[2];
+var numIteration = 2;
+if(process.argv.length > 3)
+  numIteration = process.argv[3];
 
 
 if (cluster.isMaster){
@@ -29,22 +33,21 @@ if (cluster.isMaster){
 
   var stream = kinesis.stream('hoge');
 
-  for (var i = 0; i < numIteration; i++){
+  co(function *(){
 
-    co(function *(){
+    var gate = new Gate();
 
-      var gate = new Gate();
+    for (var i = 0; i < numIteration; i++){
 
-      stream.putRecord('key', {date: new Date()}, gate.in());
+    stream.putRecord('key', {date: new Date()}, gate.in());
 
-      var result = yield gate.out();
+    }
 
-      console.log(new Date() + ':' + result);
+    var result = yield gate.out();
 
-    })();
+    console.log(new Date() + ':' + JSON.stringify(result));
 
-  }
-
+  })();
 }
 
 
