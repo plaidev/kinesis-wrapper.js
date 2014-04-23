@@ -39,7 +39,7 @@ if (cluster.isMaster){
 
     for (var i = 0; i < numIteration; i++){
 
-    stream.putRecord('key', {date: new Date()}, gate.in());
+      stream.putRecord('key', {date: new Date()}, gate.in());
 
     }
 
