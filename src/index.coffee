@@ -51,6 +51,9 @@ class KinesisStream extends EventEmitter
               ShardIteratorType: @options.ShardIteratorType || 'LATEST'
               StreamName: data.StreamDescription.StreamName
             }, (err, data)=>
+
+              throw err if err
+
               cb(err, data.ShardIterator)
         , (err, shardIterators)=>
 
