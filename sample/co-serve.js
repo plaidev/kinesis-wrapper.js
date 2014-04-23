@@ -13,6 +13,6 @@ co(function *(){
 
   var records = yield gate.out();
 
-  console.log(new Date(), records[0][0].val.date);
+  console.log(new Date(), records[0].val.date);
 
 })();
