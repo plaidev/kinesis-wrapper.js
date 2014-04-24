@@ -10,7 +10,7 @@ if(process.argv.length > 2)
   numWorkers = process.argv[2];
 var numConcurrency = 2;
 if(process.argv.length > 3)
-  numIteration = process.argv[3];
+  numConcurrency = process.argv[3];
 var numIteration = 2;
 if(process.argv.length > 4)
   numIteration = process.argv[4];
