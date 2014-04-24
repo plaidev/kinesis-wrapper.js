@@ -1,7 +1,7 @@
 {
   "name": "kinesis-wrapper.js",
   "version": "0.0.1",
-  "description": "",
+  "description": "wrapper library for aws-sdk-js's kinesis apis.",
   "main": "index.js",
   "scripts": {
     "test": "mocha --reporter spec --compilers coffee:coffee-script/register --timeout 15000"
